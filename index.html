@@ -14,7 +14,9 @@
 
 <body>
     <div class="app-frame">
+
         <main class="board-container">
+
             <header class="board-header">
                 <div class="today-pill">
                     <span class="label">Today:</span>
@@ -27,8 +29,111 @@
                     <span id="digital-clock" class="time-value">14:15</span>
                 </div>
             </header>
+
+            <div class="columns-grid">
+
+                <section class="block-card meetings-block">
+                    <div class="block-header">
+                        <h2>Meeting schedule:</h2>
+                        <button class="add-btn" id="add-meeting-btn" title="Add a meeting">+</button>
+                    </div>
+
+                    <div class="section-box upper-section" id="meetings-incomplete" data-type="meeting">
+                    </div>
+                    <div class="section-box lower-section" id="meetings-completed" data-type="meeting">
+
+                    </div>
+                </section>
+
+                <section class="block-card tasks-block">
+                    <div class="block-header">
+                        <h2>Task schedule:</h2>
+                        <button class="add-btn" id="add-task-btn" title="Add task">+</button>
+                    </div>
+
+                    <div class="section-box upper-section" id="tasks-incomplete" data-type="task">
+
+                    </div>
+
+                    <div class="section-box lower-section" id="tasks-completed" data-type="task">
+
+                    </div>
+                </section>
+
+                <section class="block-card timer-block" id="timer-block">
+                    <div class="block-header">
+                        <h2>Timer:</h2>
+                        <span class="timer-active-indicator" id="timer-status-badge">Неактивно</span>
+                    </div>
+
+                    <div class="timer-card-inner" id="timer-card-inner">
+
+                        <div class="active-item-header" id="active-item-title">
+                            Select a task or meeting
+                        </div>
+
+                        <div class="analog-timer-container">
+                            <svg class="timer-ring-svg" viewBox="0 0 200 200">
+                                <circle class="ring-bg" cx="100" cy="100" r="82" />
+                                <circle class="ring-progress" id="timer-ring-progress" cx="100" cy="100" r="82" />
+                                <line class="timer-hand" id="timer-hand" x1="100" y1="100" x2="100" y2="30" />
+                                <circle class="timer-hand-cap" cx="100" cy="100" r="5" fill="#e65c84" />
+                            </svg>
+                            <div class="timer-center-display">
+                                <div id="timer-time-display" class="timer-time">00:00</div>
+                                <div id="timer-label-display" class="timer-sublabel">min</div>
+                            </div>
+                        </div>
+
+                        <div class="timer-controls">
+                            <button id="timer-toggle-btn" class="timer-btn primary-btn">► Start</button>
+                            <button id="timer-reset-btn" class="timer-btn secondary-btn">↺ Reset</button>
+                            <button id="timer-complete-btn" class="timer-btn complete-btn">✓ Complete</button>
+                        </div>
+
+                        <div class="timer-presets">
+                            <button class="preset-btn" data-minutes="5">5min</button>
+                            <button class="preset-btn" data-minutes="15">15min</button>
+                            <button class="preset-btn active" data-minutes="25">25min</button>
+                            <button class="preset-btn" data-minutes="30">30min</button>
+                            <button class="preset-btn" data-minutes="60">60min</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
         </main>
     </div>
+
+
+    <div class="modal-overlay" id="item-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">Add a note</h3>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <form id="item-form">
+                <input type="hidden" id="item-id">
+                <input type="hidden" id="item-type" value="task">
+
+                <div class="form-group">
+                    <label for="item-text" id="item-text-label">Text / Name:</label>
+                    <input type="text" id="item-text" placeholder="For example: Find a sock" required autofocus>
+                </div>
+
+                <div class="form-group" id="time-group">
+                    <label for="item-time">Time / Duration (optional):</label>
+                    <input type="text" id="item-time" placeholder="For example: 12:30 or 30 min">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="modal-cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 

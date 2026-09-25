@@ -1,4 +1,7 @@
 
+
+
+
 function initClock() {
     const clockEl = document.getElementById('digital-clock');
     const dateEl = document.getElementById('current-date');
@@ -25,7 +28,7 @@ function initClock() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     initClock();
 
     console.log('Second Brain App loaded successfully.');
