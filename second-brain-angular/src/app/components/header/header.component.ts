@@ -9,22 +9,18 @@ import { ScheduleStateService, UiModalService } from '../../services';
   template: `
     <header class="board-header">
       <div class="header-left-group">
-        <div class="today-pill">
         <div
           class="today-pill"
           (click)="toggleView.emit()"
           title="Click to open Calendar">
           <span class="label">{{ dateLabelPrefix() }}</span>
-          <span class="value">{{ formattedSelectedDate() }}</span>
           <span class="date-value">{{ formattedSelectedDate() }}</span>
         </div>
         <button
           type="button"
           class="calendar-toggle-btn"
-          [class.active]="isCalendarOpen"
           [class.is-active]="isCalendarOpen"
           (click)="toggleView.emit()"
-          title="Open Calendar & Day Notes">
           title="Switch between Board and Calendar">
           {{ isCalendarOpen ? '📋 Board' : '📅 Calendar' }}
         </button>
@@ -35,22 +31,12 @@ import { ScheduleStateService, UiModalService } from '../../services';
       <div class="header-right-group">
         <button
           type="button"
-          class="header-icon-btn"
           class="receipt-trigger-btn"
           (click)="uiModal.openPrintModal('all')"
-          title="Print or Share Daily Schedule">
           title="Print or share your tasks & meetings (Today or Upcoming Week)">
           🖨️ Print / Share
         </button>
-        <button
-          type="button"
-          class="header-icon-btn"
-          (click)="scheduleState.cycleCircadianMode()"
-          title="Switch Circadian Theme (Auto / Morning / Day / Dusk)">
-          {{ circadianIcon() }}
-        </button>
         <div class="clock-badge">
-          <span>{{ currentTime() }}</span>
           <button
             type="button"
             class="circadian-toggle"
@@ -82,7 +68,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   readonly formattedSelectedDate = computed(() => {
     const dateObj = this.scheduleState.parseIsoDateLocal(this.scheduleState.selectedDateIso());
-    return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const day = String(dateObj.getDate()).padStart(2, '0');
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const year = dateObj.getFullYear();
@@ -90,10 +75,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   });
 
   readonly circadianIcon = computed(() => {
-    const mode = this.scheduleState.circadianMode();
     const resolved = this.scheduleState.resolvedCircadianTheme();
-    const emoji = resolved === 'morning' ? '🌅' : resolved === 'day' ? '☀️' : '🌙';
-    return mode === 'auto' ? `${emoji} Auto` : emoji;
     return resolved === 'morning' ? '🌅' : resolved === 'day' ? '☀️' : '🌙';
   });
 
@@ -120,4 +102,3 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.currentTime.set(`${hours}:${minutes}`);
   }
 }
-

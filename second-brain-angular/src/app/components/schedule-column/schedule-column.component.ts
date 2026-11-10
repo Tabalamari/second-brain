@@ -9,22 +9,17 @@ import { ItemCardComponent } from '../item-card/item-card.component';
   standalone: true,
   imports: [CommonModule, ItemCardComponent],
   template: `
-    <section class="column-card">
-      <div class="column-header">
     <section
       class="block-card"
       [class.meetings-block]="type === 'meeting'"
       [class.tasks-block]="type === 'task'">
       <div class="block-header">
         <h2>{{ title }}</h2>
-        <div class="col-header-actions">
         <div class="block-header-actions">
           <button
             type="button"
-            class="col-action-btn"
             class="icon-pill-btn"
             (click)="onOpenPrint()"
-            [title]="'Print/Share ' + title">
             [title]="'Print or share only ' + (type === 'meeting' ? 'meetings' : 'tasks')">
             🖨️
           </button>
@@ -32,7 +27,6 @@ import { ItemCardComponent } from '../item-card/item-card.component';
             type="button"
             class="add-btn"
             (click)="uiModal.openAddModal(type)"
-            [title]="'Add ' + (type === 'meeting' ? 'Meeting' : 'Task')">
             [title]="'Add ' + (type === 'meeting' ? 'a meeting' : 'task')">
             +
           </button>
@@ -40,7 +34,6 @@ import { ItemCardComponent } from '../item-card/item-card.component';
       </div>
 
       <!-- Upper Section: Incomplete -->
-      <div class="items-list upper-section">
       <div class="section-box upper-section" [attr.data-type]="type">
         @if (incompleteItems.length === 0) {
           <div class="empty-placeholder">{{ emptyPlaceholderText }}</div>
@@ -51,12 +44,7 @@ import { ItemCardComponent } from '../item-card/item-card.component';
         }
       </div>
 
-      <hr class="section-divider" />
-
       <!-- Lower Section: Completed -->
-      <div class="items-list lower-section">
-        @for (item of completedItems; track item.id) {
-          <app-item-card [item]="item" [type]="type" />
       <div class="section-box lower-section" [attr.data-type]="type">
         @if (completedItems.length === 0) {
           <div class="empty-placeholder">{{ completedPlaceholderText }}</div>
@@ -83,4 +71,3 @@ export class ScheduleColumnComponent {
     this.uiModal.openPrintModal(this.type === 'meeting' ? 'meetings' : 'tasks');
   }
 }
-

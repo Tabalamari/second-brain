@@ -26,10 +26,8 @@ interface CalendarCell {
   standalone: true,
   imports: [CommonModule, ItemCardComponent],
   template: `
-    <section class="calendar-view">
     <section class="calendar-view" id="calendar-view" aria-label="Calendar View">
       <!-- Left: Monthly Grid Card -->
-      <div class="column-card calendar-main-card">
       <div class="block-card calendar-main-card">
         <div class="calendar-nav-header">
           <div class="calendar-month-controls">
@@ -103,11 +101,9 @@ interface CalendarCell {
       </div>
 
       <!-- Right: Selected Day Notes Panel -->
-      <div class="column-card calendar-day-panel">
       <aside class="block-card calendar-day-panel">
         <div class="calendar-day-panel-header">
           <div>
-            <span class="day-panel-subtitle">Selected Day</span>
             <span class="day-panel-subtitle">Selected day notes:</span>
             <h2>{{ selectedDayHeading() }}</h2>
           </div>
@@ -116,14 +112,14 @@ interface CalendarCell {
               type="button"
               class="cal-add-note-btn"
               (click)="uiModal.openAddModal('meeting', scheduleState.selectedDateIso())"
-              title="Schedule Meeting on this day">
+              title="Add meeting on this day">
               + Meeting
             </button>
             <button
               type="button"
               class="cal-add-note-btn"
               (click)="uiModal.openAddModal('task', scheduleState.selectedDateIso())"
-              title="Add Task on this day">
+              title="Add task on this day">
               + Task
             </button>
           </div>
@@ -134,7 +130,7 @@ interface CalendarCell {
             <h3 class="day-notes-group-title">📅 Meetings</h3>
             <div class="day-notes-list">
               @if (dayMeetings().length === 0) {
-                <div class="empty-placeholder">No meetings for this day</div>
+                <div class="empty-placeholder">No meetings on this day</div>
               } @else {
                 @for (m of dayMeetings(); track m.id) {
                   <app-item-card [item]="m" type="meeting" />
@@ -144,10 +140,10 @@ interface CalendarCell {
           </div>
 
           <div class="day-notes-group">
-            <h3 class="day-notes-group-title">📝 Tasks & Notes</h3>
+            <h3 class="day-notes-group-title">✅ Tasks</h3>
             <div class="day-notes-list">
               @if (dayTasks().length === 0) {
-                <div class="empty-placeholder">No tasks or notes for this day</div>
+                <div class="empty-placeholder">No tasks on this day</div>
               } @else {
                 @for (t of dayTasks(); track t.id) {
                   <app-item-card [item]="t" type="task" />
@@ -165,7 +161,6 @@ interface CalendarCell {
             📋 Open this day on Board
           </button>
         </div>
-      </div>
       </aside>
     </section>
   `
@@ -189,13 +184,6 @@ export class CalendarViewComponent {
   });
 
   readonly selectedDayHeading = computed(() => {
-    const d = this.scheduleState.parseIsoDateLocal(this.scheduleState.selectedDateIso());
-    return d.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dObj = this.scheduleState.parseIsoDateLocal(this.scheduleState.selectedDateIso());
     const wk = weekdays[dObj.getDay()];
@@ -218,8 +206,6 @@ export class CalendarViewComponent {
     const month = this.calendarMonth();
     const firstDayOfMonth = new Date(year, month, 1);
 
-    // JS getDay(): 0 = Sun, 1 = Mon ... 6 = Sat
-    // Convert to Monday-first index: 0 = Mon ... 6 = Sun
     const mondayFirstOffset = (firstDayOfMonth.getDay() + 6) % 7;
 
     const daysInMonth = new Date(year, month + 1, 0).getDate();

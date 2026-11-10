@@ -20,13 +20,11 @@ export class TimerService implements OnDestroy {
   );
   readonly isRunning = signal<boolean>(false);
   readonly activePresetMinutes = signal<number>(25);
-  readonly RING_CIRCUMFERENCE = 298.45; // 2 * PI * 47.5
   readonly RING_CIRCUMFERENCE = 515; // 2 * PI * 82
 
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
   readonly statusBadgeText = computed(() =>
-    this.isRunning() ? 'In progress' : 'Inactive'
     this.scheduleState.activeItem() ? 'In progress' : 'Inactive'
   );
 
@@ -147,7 +145,7 @@ export class TimerService implements OnDestroy {
     const parsedMins =
       type === 'task'
         ? this.scheduleState.parseMinutesFromText(itemText) ||
-        fallbackDurationMinutes
+          fallbackDurationMinutes
         : 25;
     const mins = parsedMins || 25;
     this.totalSeconds.set(mins * 60);
@@ -174,4 +172,3 @@ export class TimerService implements OnDestroy {
     });
   }
 }
-

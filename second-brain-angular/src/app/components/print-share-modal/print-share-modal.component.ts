@@ -20,10 +20,8 @@ interface PlannerDayBlock {
       class="modal-overlay"
       id="receipt-modal"
       [class.open]="uiModal.printModalOpen()"
-      [class.print-modal-open]="uiModal.printModalOpen()"
       (click)="onOverlayClick($event)">
       <div class="modal-card receipt-modal-card">
-        <div class="modal-header">
         <div class="modal-header no-print">
           <h3>🖨️ Print & Share Schedule</h3>
           <button
@@ -36,13 +34,10 @@ interface PlannerDayBlock {
         </div>
 
         <!-- Period & Filter Configuration -->
-        <div class="print-config-rows">
-          <div class="receipt-filter-tabs">
         <div class="planner-controls-group no-print">
           <div class="receipt-period-bar" role="tablist" aria-label="Schedule period">
             <button
               type="button"
-              class="receipt-tab"
               class="receipt-period-btn"
               [class.active]="uiModal.printPeriod() === 'today'"
               (click)="uiModal.setPrintPeriod('today')">
@@ -50,7 +45,6 @@ interface PlannerDayBlock {
             </button>
             <button
               type="button"
-              class="receipt-tab"
               class="receipt-period-btn"
               [class.active]="uiModal.printPeriod() === 'week'"
               (click)="uiModal.setPrintPeriod('week')">
@@ -58,11 +52,9 @@ interface PlannerDayBlock {
             </button>
           </div>
 
-          <div class="receipt-filter-tabs">
           <div class="receipt-filter-bar" role="tablist" aria-label="Schedule content filter">
             <button
               type="button"
-              class="receipt-tab"
               class="receipt-filter-btn"
               [class.active]="uiModal.printFilter() === 'all'"
               (click)="uiModal.setPrintFilter('all')">
@@ -70,7 +62,6 @@ interface PlannerDayBlock {
             </button>
             <button
               type="button"
-              class="receipt-tab"
               class="receipt-filter-btn"
               [class.active]="uiModal.printFilter() === 'tasks'"
               (click)="uiModal.setPrintFilter('tasks')">
@@ -78,7 +69,6 @@ interface PlannerDayBlock {
             </button>
             <button
               type="button"
-              class="receipt-tab"
               class="receipt-filter-btn"
               [class.active]="uiModal.printFilter() === 'meetings'"
               (click)="uiModal.setPrintFilter('meetings')">
@@ -87,41 +77,30 @@ interface PlannerDayBlock {
           </div>
         </div>
 
-        <!-- Clean Printable Planner Sheet Preview -->
-        <div class="planner-preview-wrapper">
-          <div class="planner-sheet">
         <!-- Printable Planner Sheet -->
         <div class="planner-sheet-wrapper" id="printable-receipt-area">
           <div class="planner-sheet" id="daily-receipt-card">
             <div class="planner-sheet-header">
-              <div>
-                <div class="planner-sheet-title">{{ sheetTitle() }}</div>
-                <div class="planner-sheet-subtitle">{{ sheetSubtitle() }}</div>
               <div class="planner-sheet-title-row">
                 <span class="planner-sheet-brand">Second Brain — Schedule</span>
                 <span class="planner-sheet-badge" id="receipt-period-badge">
                   {{ periodBadgeLabel() }}
                 </span>
               </div>
-              <span class="planner-sheet-badge">Second Brain</span>
               <div class="planner-sheet-date" id="receipt-date-stamp">
                 {{ dateStampLabel() }}
               </div>
             </div>
 
-            <div class="planner-sheet-body">
             <div class="planner-sheet-body" id="receipt-items-body">
               @if (dayBlocks().length === 0) {
-                <div class="planner-empty-msg">
                 <div class="planner-empty-line">
                   No scheduled items for the selected period ✨
                 </div>
               } @else {
                 @for (block of dayBlocks(); track block.iso) {
-                  <div class="planner-day-block">
                   <div class="planner-day-block" [class.is-today]="block.isToday">
                     @if (uiModal.printPeriod() === 'week') {
-                      <div class="planner-day-heading">{{ block.dayHeading }}</div>
                       <div class="planner-day-header">
                         <span>{{ block.dayHeading }}</span>
                         <span>{{ block.meetings.length + block.tasks.length }} items</span>
@@ -129,17 +108,6 @@ interface PlannerDayBlock {
                     }
 
                     @if (block.meetings.length > 0) {
-                      <div class="planner-section-block">
-                        <div class="planner-section-title">📅 Meetings</div>
-                        @for (m of block.meetings; track m.id) {
-                          <div class="planner-row" [class.is-done]="m.completed">
-                            <span class="planner-item-name">
-                              {{ m.completed ? '☑' : '☐' }} {{ m.text }}
-                            </span>
-                            <span class="planner-item-time">{{ m.time }}</span>
-                          </div>
-                        }
-                      </div>
                       <div class="planner-section-title">📅 Meetings</div>
                       @for (m of block.meetings; track m.id) {
                         <div class="planner-line-item" [class.is-done]="m.completed">
@@ -152,17 +120,6 @@ interface PlannerDayBlock {
                     }
 
                     @if (block.tasks.length > 0) {
-                      <div class="planner-section-block">
-                        <div class="planner-section-title">📝 Tasks</div>
-                        @for (t of block.tasks; track t.id) {
-                          <div class="planner-row" [class.is-done]="t.completed">
-                            <span class="planner-item-name">
-                              {{ t.completed ? '☑' : '☐' }} {{ t.text }}
-                            </span>
-                            <span class="planner-item-time">{{ t.durationMinutes || 25 }} min</span>
-                          </div>
-                        }
-                      </div>
                       <div class="planner-section-title">✅ Tasks</div>
                       @for (t of block.tasks; track t.id) {
                         <div class="planner-line-item" [class.is-done]="t.completed">
@@ -186,7 +143,6 @@ interface PlannerDayBlock {
         </div>
 
         <!-- Action Buttons: Print, Copy, Native Share, Messenger Links -->
-        <div class="receipt-actions-bar">
         <div class="receipt-actions-panel no-print">
           <div class="receipt-primary-actions">
             <button
@@ -211,14 +167,12 @@ interface PlannerDayBlock {
               📤 Share...
             </button>
           </div>
-          <div class="receipt-messenger-links">
           <div class="receipt-messenger-row">
             <span class="share-row-label">Send to:</span>
             <a
               [href]="telegramShareUrl()"
               target="_blank"
               rel="noopener"
-              class="messenger-pill">
               class="messenger-pill"
               title="Share via Telegram">
               ✈️ Telegram
@@ -227,7 +181,6 @@ interface PlannerDayBlock {
               [href]="whatsappShareUrl()"
               target="_blank"
               rel="noopener"
-              class="messenger-pill">
               class="messenger-pill"
               title="Share via WhatsApp">
               💬 WhatsApp
@@ -236,14 +189,12 @@ interface PlannerDayBlock {
               [href]="viberShareUrl()"
               target="_blank"
               rel="noopener"
-              class="messenger-pill">
               class="messenger-pill"
               title="Share via Viber">
               💜 Viber
             </a>
             <a
               [href]="emailShareUrl()"
-              class="messenger-pill">
               class="messenger-pill"
               title="Send via Email">
               ✉️ Email
@@ -277,35 +228,19 @@ export class PrintShareModalComponent {
     return list;
   });
 
-  readonly sheetTitle = computed(() =>
-    this.uiModal.printPeriod() === 'week' ? 'Weekly Schedule Plan' : 'Daily Schedule Plan'
   readonly periodBadgeLabel = computed(() =>
-      this.uiModal.printPeriod() === 'week' ? 'Weekly Plan (7 Days)' : 'Daily Plan'
-    );
+    this.uiModal.printPeriod() === 'week' ? 'Weekly Plan (7 Days)' : 'Daily Plan'
+  );
 
-  readonly sheetSubtitle = computed(() => {
   readonly dateStampLabel = computed(() => {
     const dates = this.dateListIso();
     const first = this.scheduleState.parseIsoDateLocal(dates[0]);
     const formatDot = (d: Date) =>
       `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
     if (this.uiModal.printPeriod() === 'today' || dates.length === 1) {
-      return first.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
       return `Date: ${formatDot(first)}`;
     }
     const last = this.scheduleState.parseIsoDateLocal(dates[dates.length - 1]);
-    const startLabel = first.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endLabel = last.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-    return `${startLabel} – ${endLabel}`;
     return `Period: ${formatDot(first)} – ${formatDot(last)}`;
   });
 
@@ -320,14 +255,12 @@ export class PrintShareModalComponent {
     for (const iso of this.dateListIso()) {
       const meetings =
         filter === 'all' || filter === 'meetings'
-          ? allMeetings.filter(m => m.date === iso)
-            ? allMeetings.filter(m => (m.date || todayIso) === iso)
-            : [];
+          ? allMeetings.filter(m => (m.date || todayIso) === iso)
+          : [];
       const tasks =
         filter === 'all' || filter === 'tasks'
-          ? allTasks.filter(t => t.date === iso)
-            ? allTasks.filter(t => (t.date || todayIso) === iso)
-            : [];
+          ? allTasks.filter(t => (t.date || todayIso) === iso)
+          : [];
 
       if (period === 'week' && meetings.length === 0 && tasks.length === 0) {
         continue;
@@ -341,7 +274,6 @@ export class PrintShareModalComponent {
       });
 
       if (meetings.length > 0 || tasks.length > 0) {
-        blocks.push({ iso, dayHeading, meetings, tasks });
         blocks.push({
           iso,
           dayHeading,
@@ -374,7 +306,6 @@ export class PrintShareModalComponent {
 
   readonly plainTextSchedule = computed<string>(() => {
     const lines: string[] = [];
-    lines.push(`📋 ${this.sheetTitle()} (${this.sheetSubtitle()})`);
     lines.push(`📋 Second Brain — ${this.periodBadgeLabel()} (${this.dateStampLabel()})`);
     lines.push('');
 
@@ -391,15 +322,12 @@ export class PrintShareModalComponent {
       if (block.meetings.length > 0) {
         lines.push('📅 Meetings:');
         block.meetings.forEach(m => {
-          lines.push(`  ${m.completed ? '✅' : '⬜'} ${m.text} (${m.time})`);
           lines.push(`  ${m.completed ? '☑' : '☐'} ${m.text}`);
         });
       }
       if (block.tasks.length > 0) {
-        lines.push('📝 Tasks:');
         lines.push('✅ Tasks:');
         block.tasks.forEach(t => {
-          lines.push(`  ${t.completed ? '✅' : '⬜'} ${t.text} (${t.durationMinutes || 25} min)`);
           lines.push(`  ${t.completed ? '☑' : '☐'} ${t.text} (${t.durationMinutes || 25} min)`);
         });
       }
@@ -447,7 +375,6 @@ export class PrintShareModalComponent {
         this.copyBtnLabel.set('📋 Copy Text');
       }, 1800);
     } catch {
-      // Fallback ignored if clipboard unavailable
       // Ignore if clipboard unavailable
     }
   }
