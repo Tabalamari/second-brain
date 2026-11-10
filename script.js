@@ -23,6 +23,55 @@ const DEFAULT_STATE = {
 
 let appState = null;
 let timerInterval = null;
+let selectedDateIso = null;
+let calendarYear = null;
+let calendarMonth = null;
+let isCalendarOpen = false;
+
+function toIsoDateString(dateObj) {
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function getTodayIso() {
+    return toIsoDateString(new Date());
+}
+
+function parseIsoDate(isoStr) {
+    const [y, m, d] = (isoStr || getTodayIso()).split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1);
+}
+
+function formatIsoToDotDate(isoStr) {
+    const dObj = parseIsoDate(isoStr);
+    const d = String(dObj.getDate()).padStart(2, '0');
+    const m = String(dObj.getMonth() + 1).padStart(2, '0');
+    const y = dObj.getFullYear();
+    return `${d}.${m}.${y}`;
+}
+
+function formatIsoToDayHeading(isoStr) {
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dObj = parseIsoDate(isoStr);
+    const wk = weekdays[dObj.getDay()];
+    return `${wk}, ${formatIsoToDotDate(isoStr)}`;
+}
+
+function ensureItemDates() {
+    const todayIso = getTodayIso();
+    if (appState && Array.isArray(appState.meetings)) {
+        appState.meetings.forEach(m => {
+            if (!m.date) m.date = todayIso;
+        });
+    }
+    if (appState && Array.isArray(appState.tasks)) {
+        appState.tasks.forEach(t => {
+            if (!t.date) t.date = todayIso;
+        });
+    }
+}
 
 
 function playTimerCompletionSound() {
@@ -75,12 +124,19 @@ function loadState() {
             appState = JSON.parse(data);
         } else {
             appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
-            saveState();
         }
     } catch (e) {
         console.error('Failed to load state:', e);
         appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
+
+    ensureItemDates();
+    saveState();
+
+    const now = new Date();
+    selectedDateIso = getTodayIso();
+    calendarYear = now.getFullYear();
+    calendarMonth = now.getMonth();
 }
 
 
@@ -96,9 +152,22 @@ function parseMinutesFromText(text) {
     return null;
 }
 
+function updateHeaderDatePill() {
+    const dateEl = document.getElementById('current-date');
+    const labelEl = document.getElementById('selected-date-label');
+    const todayIso = getTodayIso();
+    const activeIso = selectedDateIso || todayIso;
+
+    if (labelEl) {
+        labelEl.textContent = activeIso === todayIso ? 'Today:' : 'Date:';
+    }
+    if (dateEl) {
+        dateEl.textContent = formatIsoToDotDate(activeIso);
+    }
+}
+
 function initClock() {
     const clockEl = document.getElementById('digital-clock');
-    const dateEl = document.getElementById('current-date');
     
     function update() {
         const now = new Date();
@@ -107,14 +176,16 @@ function initClock() {
         const minutes = String(now.getMinutes()).padStart(2, '0');
         if (clockEl) clockEl.textContent = `${hours}:${minutes}`;
         
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const year = now.getFullYear();
-        if (dateEl) dateEl.textContent = `${day}.${month}.${year}`;
+        updateHeaderDatePill();
     }
     
     update();
     setInterval(update, 1000);
+}
+
+function isItemOnDate(item, targetIso) {
+    const itemIso = item.date || getTodayIso();
+    return itemIso === targetIso;
 }
 
 function renderItems() {
@@ -130,8 +201,12 @@ function renderItems() {
     tasksIncomplete.innerHTML = '';
     tasksCompleted.innerHTML = '';
 
-    const incMeetings = appState.meetings.filter(m => !m.completed);
-    const compMeetings = appState.meetings.filter(m => m.completed);
+    const activeDate = selectedDateIso || getTodayIso();
+    updateHeaderDatePill();
+
+    const dayMeetings = appState.meetings.filter(m => isItemOnDate(m, activeDate));
+    const incMeetings = dayMeetings.filter(m => !m.completed);
+    const compMeetings = dayMeetings.filter(m => m.completed);
 
     if (incMeetings.length === 0) {
         meetingsIncomplete.innerHTML = `<div class="empty-placeholder">No upcoming meetings</div>`;
@@ -145,8 +220,9 @@ function renderItems() {
         compMeetings.forEach(item => meetingsCompleted.appendChild(createItemCard(item, 'meeting')));
     }
 
-    const incTasks = appState.tasks.filter(t => !t.completed);
-    const compTasks = appState.tasks.filter(t => t.completed);
+    const dayTasks = appState.tasks.filter(t => isItemOnDate(t, activeDate));
+    const incTasks = dayTasks.filter(t => !t.completed);
+    const compTasks = dayTasks.filter(t => t.completed);
 
     if (incTasks.length === 0) {
         tasksIncomplete.innerHTML = `<div class="empty-placeholder">No active tasks</div>`;
@@ -161,6 +237,7 @@ function renderItems() {
     }
 
     updateTimerUI();
+    renderCalendar();
 }
 
 function createItemCard(item, type) {
@@ -401,6 +478,7 @@ function initModal() {
     const itemTypeInput = document.getElementById('item-type');
     const itemTextInput = document.getElementById('item-text');
     const itemTimeInput = document.getElementById('item-time');
+    const itemDateInput = document.getElementById('item-date');
     const form = document.getElementById('item-form');
 
     const addMeetingBtn = document.getElementById('add-meeting-btn');
@@ -408,11 +486,14 @@ function initModal() {
     const closeBtn = document.getElementById('modal-close-btn');
     const cancelBtn = document.getElementById('modal-cancel-btn');
 
-    function openModal(type) {
+    function openModal(type, customDateIso) {
         if (itemIdInput) itemIdInput.value = '';
         itemTypeInput.value = type;
         itemTextInput.value = '';
         itemTimeInput.value = '';
+        if (itemDateInput) {
+            itemDateInput.value = customDateIso || selectedDateIso || getTodayIso();
+        }
 
         if (type === 'meeting') {
             modalTitle.textContent = 'Add meeting';
@@ -428,6 +509,8 @@ function initModal() {
         itemTextInput.focus();
     }
 
+    window.openAddModal = openModal;
+
     window.openEditModal = function(item, type) {
         if (itemIdInput) itemIdInput.value = item.id;
         itemTypeInput.value = type;
@@ -435,6 +518,9 @@ function initModal() {
         itemTextInput.value = item.text || '';
         const parsedDur = parseMinutesFromText(item.text);
         itemTimeInput.value = type === 'meeting' ? (item.time || '') : (parsedDur ? `${parsedDur} min` : '');
+        if (itemDateInput) {
+            itemDateInput.value = item.date || selectedDateIso || getTodayIso();
+        }
 
         if (type === 'meeting') {
             modalTitle.textContent = 'Edit meeting';
@@ -471,6 +557,7 @@ function initModal() {
         const text = itemTextInput.value.trim();
         const type = itemTypeInput.value;
         const timeOrDur = itemTimeInput.value.trim();
+        const chosenDate = (itemDateInput && itemDateInput.value) ? itemDateInput.value : (selectedDateIso || getTodayIso());
 
         if (!text) return;
 
@@ -479,6 +566,7 @@ function initModal() {
             let existingItem = targetList.find(i => i.id === editId);
 
             if (existingItem) {
+                existingItem.date = chosenDate;
                 if (type === 'meeting') {
                     const timeVal = timeOrDur;
                     let fullText = text;
@@ -514,6 +602,7 @@ function initModal() {
                     id: 'm_' + Date.now(),
                     text: fullText,
                     time: timeVal || (text.match(/\b\d{1,2}:\d{2}\b/)?.[0] || ''),
+                    date: chosenDate,
                     completed: false
                 };
                 appState.meetings.unshift(newItem);
@@ -527,6 +616,7 @@ function initModal() {
                     id: 't_' + Date.now(),
                     text: fullText,
                     durationMinutes: parseMinutesFromText(fullText),
+                    date: chosenDate,
                     completed: false
                 };
                 appState.tasks.unshift(newItem);
@@ -539,11 +629,251 @@ function initModal() {
     };
 }
 
+function renderCalendar() {
+    const gridEl = document.getElementById('calendar-days-grid');
+    const monthTitleEl = document.getElementById('cal-month-title');
+    if (!gridEl || !monthTitleEl) return;
+
+    const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    monthTitleEl.textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
+    gridEl.innerHTML = '';
+
+    const todayIso = getTodayIso();
+    const activeIso = selectedDateIso || todayIso;
+
+    // Week starts on Monday: convert JS getDay() (0=Sun..6=Sat) -> Monday-first index (0=Mon..6=Sun)
+    const firstDayOfMonth = new Date(calendarYear, calendarMonth, 1);
+    const mondayFirstOffset = (firstDayOfMonth.getDay() + 6) % 7;
+    const daysInCurrentMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(calendarYear, calendarMonth, 0).getDate();
+
+    const totalCells = 42; // 6 full weeks (Monday to Sunday)
+
+    for (let i = 0; i < totalCells; i++) {
+        let cellYear = calendarYear;
+        let cellMonth = calendarMonth;
+        let dayNum = 1;
+        let isOtherMonth = false;
+
+        if (i < mondayFirstOffset) {
+            isOtherMonth = true;
+            dayNum = daysInPrevMonth - mondayFirstOffset + 1 + i;
+            const prevDate = new Date(calendarYear, calendarMonth - 1, dayNum);
+            cellYear = prevDate.getFullYear();
+            cellMonth = prevDate.getMonth();
+        } else if (i >= mondayFirstOffset + daysInCurrentMonth) {
+            isOtherMonth = true;
+            dayNum = i - (mondayFirstOffset + daysInCurrentMonth) + 1;
+            const nextDate = new Date(calendarYear, calendarMonth + 1, dayNum);
+            cellYear = nextDate.getFullYear();
+            cellMonth = nextDate.getMonth();
+        } else {
+            dayNum = i - mondayFirstOffset + 1;
+        }
+
+        const cellDateObj = new Date(cellYear, cellMonth, dayNum);
+        const cellIso = toIsoDateString(cellDateObj);
+
+        const dayMeetings = appState.meetings.filter(m => isItemOnDate(m, cellIso));
+        const dayTasks = appState.tasks.filter(t => isItemOnDate(t, cellIso));
+        const allDayNotes = [
+            ...dayMeetings.map(m => ({ ...m, _type: 'meeting' })),
+            ...dayTasks.map(t => ({ ...t, _type: 'task' }))
+        ];
+
+        const cell = document.createElement('div');
+        cell.className = 'cal-day-cell';
+        if (isOtherMonth) cell.classList.add('is-other-month');
+        if (cellIso === todayIso) cell.classList.add('is-today');
+        if (cellIso === activeIso) cell.classList.add('is-selected');
+        cell.dataset.date = cellIso;
+
+        const topRow = document.createElement('div');
+        topRow.className = 'cal-day-top';
+
+        const numSpan = document.createElement('span');
+        numSpan.className = 'cal-day-number';
+        numSpan.textContent = dayNum;
+        topRow.appendChild(numSpan);
+
+        if (allDayNotes.length > 0) {
+            const countBadge = document.createElement('span');
+            countBadge.className = 'cal-day-count';
+            countBadge.textContent = allDayNotes.length;
+            topRow.appendChild(countBadge);
+        }
+
+        cell.appendChild(topRow);
+
+        const previewBox = document.createElement('div');
+        previewBox.className = 'cal-day-notes-preview';
+
+        allDayNotes.slice(0, 2).forEach(note => {
+            const chip = document.createElement('div');
+            chip.className = 'cal-note-chip'
+                + (note._type === 'meeting' ? ' is-meeting' : '')
+                + (note.completed ? ' is-completed' : '');
+            chip.textContent = note.text;
+            previewBox.appendChild(chip);
+        });
+
+        if (allDayNotes.length > 2) {
+            const moreChip = document.createElement('div');
+            moreChip.className = 'cal-more-chip';
+            moreChip.textContent = `+${allDayNotes.length - 2} more`;
+            previewBox.appendChild(moreChip);
+        }
+
+        cell.appendChild(previewBox);
+
+        cell.onclick = () => {
+            selectedDateIso = cellIso;
+            if (isOtherMonth) {
+                calendarYear = cellYear;
+                calendarMonth = cellMonth;
+            }
+            renderItems();
+        };
+
+        gridEl.appendChild(cell);
+    }
+
+    renderCalendarDayPanel();
+}
+
+function renderCalendarDayPanel() {
+    const titleEl = document.getElementById('cal-selected-date-title');
+    const meetingsListEl = document.getElementById('cal-day-meetings');
+    const tasksListEl = document.getElementById('cal-day-tasks');
+
+    if (!titleEl || !meetingsListEl || !tasksListEl) return;
+
+    const activeIso = selectedDateIso || getTodayIso();
+    titleEl.textContent = formatIsoToDayHeading(activeIso);
+
+    meetingsListEl.innerHTML = '';
+    tasksListEl.innerHTML = '';
+
+    const dayMeetings = appState.meetings.filter(m => isItemOnDate(m, activeIso));
+    const dayTasks = appState.tasks.filter(t => isItemOnDate(t, activeIso));
+
+    if (dayMeetings.length === 0) {
+        meetingsListEl.innerHTML = `<div class="empty-placeholder">No meetings on this day</div>`;
+    } else {
+        dayMeetings.forEach(item => meetingsListEl.appendChild(createItemCard(item, 'meeting')));
+    }
+
+    if (dayTasks.length === 0) {
+        tasksListEl.innerHTML = `<div class="empty-placeholder">No tasks on this day</div>`;
+    } else {
+        dayTasks.forEach(item => tasksListEl.appendChild(createItemCard(item, 'task')));
+    }
+}
+
+function setCalendarViewOpen(open) {
+    isCalendarOpen = open;
+    const boardView = document.getElementById('board-view');
+    const calendarView = document.getElementById('calendar-view');
+    const toggleBtn = document.getElementById('calendar-toggle-btn');
+
+    if (boardView && calendarView) {
+        boardView.classList.toggle('hidden', isCalendarOpen);
+        calendarView.classList.toggle('hidden', !isCalendarOpen);
+    }
+
+    if (toggleBtn) {
+        toggleBtn.classList.toggle('is-active', isCalendarOpen);
+        toggleBtn.textContent = isCalendarOpen ? '📋 Board' : '📅 Calendar';
+    }
+
+    if (isCalendarOpen) {
+        renderCalendar();
+    }
+}
+
+function initCalendar() {
+    const toggleBtn = document.getElementById('calendar-toggle-btn');
+    const todayPill = document.getElementById('today-pill');
+    const prevMonthBtn = document.getElementById('cal-prev-month');
+    const nextMonthBtn = document.getElementById('cal-next-month');
+    const gotoTodayBtn = document.getElementById('cal-goto-today');
+    const addMeetingDayBtn = document.getElementById('cal-add-meeting-btn');
+    const addTaskDayBtn = document.getElementById('cal-add-task-btn');
+    const openOnBoardBtn = document.getElementById('cal-open-on-board-btn');
+
+    if (toggleBtn) {
+        toggleBtn.onclick = () => setCalendarViewOpen(!isCalendarOpen);
+    }
+
+    if (todayPill) {
+        todayPill.onclick = () => setCalendarViewOpen(!isCalendarOpen);
+    }
+
+    if (prevMonthBtn) {
+        prevMonthBtn.onclick = () => {
+            calendarMonth--;
+            if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            }
+            renderCalendar();
+        };
+    }
+
+    if (nextMonthBtn) {
+        nextMonthBtn.onclick = () => {
+            calendarMonth++;
+            if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            }
+            renderCalendar();
+        };
+    }
+
+    if (gotoTodayBtn) {
+        gotoTodayBtn.onclick = () => {
+            const now = new Date();
+            selectedDateIso = getTodayIso();
+            calendarYear = now.getFullYear();
+            calendarMonth = now.getMonth();
+            renderItems();
+        };
+    }
+
+    if (addMeetingDayBtn) {
+        addMeetingDayBtn.onclick = () => {
+            if (window.openAddModal) {
+                window.openAddModal('meeting', selectedDateIso || getTodayIso());
+            }
+        };
+    }
+
+    if (addTaskDayBtn) {
+        addTaskDayBtn.onclick = () => {
+            if (window.openAddModal) {
+                window.openAddModal('task', selectedDateIso || getTodayIso());
+            }
+        };
+    }
+
+    if (openOnBoardBtn) {
+        openOnBoardBtn.onclick = () => {
+            setCalendarViewOpen(false);
+        };
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadState();
     initClock();
     renderItems();
     initModal();
+    initCalendar();
 
     document.getElementById('timer-toggle-btn').onclick = toggleTimer;
     document.getElementById('timer-reset-btn').onclick = resetTimer;

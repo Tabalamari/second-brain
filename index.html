@@ -18,9 +18,14 @@
         <main class="board-container">
 
             <header class="board-header">
-                <div class="today-pill">
-                    <span class="label">Today:</span>
-                    <span id="current-date" class="date-value">20.09.2026</span>
+                <div class="header-left-group">
+                    <div class="today-pill" id="today-pill" title="Click to open Calendar">
+                        <span class="label" id="selected-date-label">Today:</span>
+                        <span id="current-date" class="date-value">20.09.2026</span>
+                    </div>
+                    <button type="button" class="calendar-toggle-btn" id="calendar-toggle-btn" title="Switch between Board and Calendar">
+                        📅 Calendar
+                    </button>
                 </div>
 
                 <h1 class="board-title">Second Brain</h1>
@@ -30,7 +35,7 @@
                 </div>
             </header>
 
-            <div class="columns-grid">
+            <div class="columns-grid" id="board-view">
 
                 <section class="block-card meetings-block">
                     <div class="block-header">
@@ -102,6 +107,65 @@
                 </section>
 
             </div>
+
+            <!-- Calendar View (Week starts on Monday) -->
+            <section class="calendar-view hidden" id="calendar-view" aria-label="Calendar View">
+                <div class="block-card calendar-main-card">
+                    <div class="calendar-nav-header">
+                        <div class="calendar-month-controls">
+                            <button type="button" class="cal-nav-btn" id="cal-prev-month" title="Previous month">◀</button>
+                            <h2 class="cal-month-title" id="cal-month-title">November 2026</h2>
+                            <button type="button" class="cal-nav-btn" id="cal-next-month" title="Next month">▶</button>
+                        </div>
+                        <button type="button" class="cal-today-btn" id="cal-goto-today">Today</button>
+                    </div>
+
+                    <div class="calendar-weekdays-row">
+                        <span>Mon</span>
+                        <span>Tue</span>
+                        <span>Wed</span>
+                        <span>Thu</span>
+                        <span>Fri</span>
+                        <span class="weekend-label">Sat</span>
+                        <span class="weekend-label">Sun</span>
+                    </div>
+
+                    <div class="calendar-days-grid" id="calendar-days-grid">
+                        <!-- Dynamically rendered calendar cells (Monday-first) -->
+                    </div>
+                </div>
+
+                <aside class="block-card calendar-day-panel">
+                    <div class="calendar-day-panel-header">
+                        <div>
+                            <span class="day-panel-subtitle">Selected day notes:</span>
+                            <h2 id="cal-selected-date-title">Tuesday, 10.11.2026</h2>
+                        </div>
+                        <div class="day-panel-add-actions">
+                            <button type="button" class="cal-add-note-btn" id="cal-add-meeting-btn" title="Add meeting on this day">+ Meeting</button>
+                            <button type="button" class="cal-add-note-btn" id="cal-add-task-btn" title="Add task on this day">+ Task</button>
+                        </div>
+                    </div>
+
+                    <div class="day-panel-sections">
+                        <div class="day-notes-group">
+                            <h3 class="day-notes-group-title">📅 Meetings</h3>
+                            <div class="day-notes-list" id="cal-day-meetings"></div>
+                        </div>
+
+                        <div class="day-notes-group">
+                            <h3 class="day-notes-group-title">✅ Tasks</h3>
+                            <div class="day-notes-list" id="cal-day-tasks"></div>
+                        </div>
+                    </div>
+
+                    <div class="day-panel-footer">
+                        <button type="button" class="timer-btn primary-btn" id="cal-open-on-board-btn">
+                            📋 Open this day on Board
+                        </button>
+                    </div>
+                </aside>
+            </section>
         </main>
     </div>
 
@@ -124,6 +188,11 @@
                 <div class="form-group" id="time-group">
                     <label for="item-time">Time / Duration (optional):</label>
                     <input type="text" id="item-time" placeholder="For example: 12:30 or 30 min">
+                </div>
+
+                <div class="form-group" id="date-group">
+                    <label for="item-date">Date:</label>
+                    <input type="date" id="item-date" required>
                 </div>
 
                 <div class="modal-actions">
