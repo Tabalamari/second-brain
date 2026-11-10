@@ -1,10 +1,13 @@
 <div class="board-container">
-  <app-header
-    [isCalendarOpen]="isCalendarOpen()"
-    (toggleView)="toggleCalendarView()" />
+  <app-header [isCalendarOpen]="isCalendarOpen()" (toggleView)="toggleCalendarView()" />
+  <div class="app-frame">
+    <main class="board-container">
+      <app-header [isCalendarOpen]="isCalendarOpen()" (toggleView)="toggleCalendarView()" />
 
-  <router-outlet />
-</div>
+      <router-outlet />
+      <router-outlet />
+    </main>
+  </div>
 
-<app-item-modal />
-<app-print-share-modal />
+  <app-item-modal />
+  <app-print-share-modal />

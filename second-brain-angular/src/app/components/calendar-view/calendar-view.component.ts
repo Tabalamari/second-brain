@@ -27,8 +27,10 @@ interface CalendarCell {
   imports: [CommonModule, ItemCardComponent],
   template: `
     <section class="calendar-view">
+    <section class="calendar-view" id="calendar-view" aria-label="Calendar View">
       <!-- Left: Monthly Grid Card -->
       <div class="column-card calendar-main-card">
+      <div class="block-card calendar-main-card">
         <div class="calendar-nav-header">
           <div class="calendar-month-controls">
             <button
@@ -102,9 +104,11 @@ interface CalendarCell {
 
       <!-- Right: Selected Day Notes Panel -->
       <div class="column-card calendar-day-panel">
+      <aside class="block-card calendar-day-panel">
         <div class="calendar-day-panel-header">
           <div>
             <span class="day-panel-subtitle">Selected Day</span>
+            <span class="day-panel-subtitle">Selected day notes:</span>
             <h2>{{ selectedDayHeading() }}</h2>
           </div>
           <div class="day-panel-add-actions">
@@ -162,6 +166,7 @@ interface CalendarCell {
           </button>
         </div>
       </div>
+      </aside>
     </section>
   `
 })
@@ -191,6 +196,13 @@ export class CalendarViewComponent {
       day: 'numeric',
       year: 'numeric'
     });
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dObj = this.scheduleState.parseIsoDateLocal(this.scheduleState.selectedDateIso());
+    const wk = weekdays[dObj.getDay()];
+    const d = String(dObj.getDate()).padStart(2, '0');
+    const m = String(dObj.getMonth() + 1).padStart(2, '0');
+    const y = dObj.getFullYear();
+    return `${wk}, ${d}.${m}.${y}`;
   });
 
   readonly dayMeetings = computed<MeetingItem[]>(() =>

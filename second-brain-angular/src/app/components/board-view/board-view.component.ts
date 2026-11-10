@@ -12,25 +12,33 @@ import { TimerWidgetComponent } from '../timer-widget/timer-widget.component';
   imports: [CommonModule, ScheduleColumnComponent, TimerWidgetComponent],
   template: `
     <main class="columns-grid">
+    <div class="columns-grid" id="board-view">
       <!-- Column 1: Meetings -->
       <app-schedule-column
         title="Meetings"
+        title="Meeting schedule:"
         type="meeting"
         [incompleteItems]="scheduleState.incompleteMeetings()"
         [completedItems]="scheduleState.completedMeetings()"
         emptyPlaceholderText="No upcoming meetings" />
+        emptyPlaceholderText="No upcoming meetings"
+        completedPlaceholderText="No past meetings" />
 
       <!-- Column 2: Tasks -->
       <app-schedule-column
         title="Tasks"
+        title="Task schedule:"
         type="task"
         [incompleteItems]="scheduleState.incompleteTasks()"
         [completedItems]="scheduleState.completedTasks()"
         emptyPlaceholderText="All tasks completed! 🎉" />
+        emptyPlaceholderText="No active tasks"
+        completedPlaceholderText="No tasks completed" />
 
       <!-- Column 3: Analog + Digital Timer -->
       <app-timer-widget />
     </main>
+    </div>
   `
 })
 export class BoardViewComponent implements OnInit {
