@@ -1,0 +1,10 @@
+<div class="board-container">
+  <app-header
+    [isCalendarOpen]="isCalendarOpen()"
+    (toggleView)="toggleCalendarView()" />
+
+  <router-outlet />
+</div>
+
+<app-item-modal />
+<app-print-share-modal />
